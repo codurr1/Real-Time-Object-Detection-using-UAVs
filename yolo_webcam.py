@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Mar  3 03:04:11 2022
+
+@author: Yash Malik
+"""
+
 # import the necessary packages
 import numpy as np
 import argparse
@@ -7,14 +14,8 @@ import time
 import cv2
 import os
 
-file_name = 'webcam_feed'
-output_file_type = '.mp4'
-output_file_path = 'output/' + file_name + output_file_type
-
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-o", "--output", default=output_file_path,
-	help="path to output video")
 ap.add_argument("-y", "--yolo", default='yolo-coco',
 	help="base path to YOLO directory")
 ap.add_argument("-c", "--confidence", type=float, default=0.5,
@@ -36,7 +37,7 @@ COLORS = np.random.randint(0, 255, size=(len(LABELS), 3),
 weightsPath = os.path.sep.join([args["yolo"], "yolov3.weights"])
 configPath = os.path.sep.join([args["yolo"], "yolov3.cfg"])
 
-# load our YOLO object detector trained on COCO dataset (80 classes)
+# load the YOLO object detector trained on COCO dataset (80 classes)
 # and determine only the *output* layer names that we need from YOLO
 print("[INFO] loading YOLO from disk...")
 net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
@@ -45,29 +46,16 @@ ln = [ln[i - 1] for i in net.getUnconnectedOutLayers()]
 
 # initialize the video stream, pointer to output video file, and
 # frame dimensions
-vs = cv2.VideoCapture(0)
-writer = None
+vs = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 (W, H) = (None, None)
 
-# try to determine the total number of frames in the video file
-try:
-	prop = cv2.cv.CV_CAP_PROP_FRAME_COUNT if imutils.is_cv2() \
-		else cv2.CAP_PROP_FRAME_COUNT
-	total = int(vs.get(prop))
-	print("[INFO] {} total frames in video".format(total))
-
-# an error occurred while trying to determine the total
-# number of frames in the video file
-except:
-	print("[INFO] could not determine # of frames in video")
-	print("[INFO] no approx. completion time can be provided")
-	total = -1
+total_frames = 0
 
 # loop over frames from the video file stream
 while True:
 	# read the next frame from the file
 	ret, frame = vs.read()
-
+	total_frames = total_frames + 1
 	# if the frame dimensions are empty, grab them
 	if W is None or H is None:
 		(H, W) = frame.shape[:2]
@@ -136,17 +124,20 @@ while True:
 				confidences[i])
 			cv2.putText(frame, text, (x, y - 5),
 				cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-	cv2.imshow('yash',frame)
+	
+	# show results in real-time
+	cv2.imshow('Feed',frame)
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
 
-		# some information on processing single frame
-		if total > 0:
-			elap = (end - start)
-			print("[INFO] single frame took {:.4f} seconds".format(elap))
-			print("[INFO] estimated total time to finish: {:.4f}".format(
-				elap * total))
-			
+# some information on processing single frame
+if total_frames > 0:
+	elap = (end - start)
+	print("[INFO] single frame took {:.4f} seconds".format(elap))
+	print("[INFO] total frames = {:d}".format(total_frames))
+	print("[INFO] estimated total time to finish: {:.4f}".format(
+		elap * total_frames))
+
 vs.release()
 cv2.destroyAllWindows()
 
