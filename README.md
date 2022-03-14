@@ -1,4 +1,4 @@
-# Real-Time Object Detection Uaing YOLOv3
+# Real-Time Object Detection Using YOLOv3
 Trained on Yolo-coco dataset (https://www.kaggle.com/valentynsichkar/yolo-coco-data) and can identify 80 classes of objects with much higher speed and accuracy than previously known algorithms,
 
 Resources Used:
